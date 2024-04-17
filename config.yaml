@@ -1,0 +1,38 @@
+tcp: false
+listen: 1884
+listenTLS: 
+  port: 11884
+  cert: ./secret/server-cert.pem
+  key: ./secret/server-key.pem
+brokers:
+  - 198.19.249.3:1883
+limits:
+  conn:
+    rate: 200
+    blockInput: true
+    fastFail: true
+  pub:
+    rate: 10
+    blockInput: true
+tracing:
+  key: traceid
+tags:
+  proxy: pipy
+ids:
+  allow:
+    - client-1
+    - client-2
+  deny:
+    - client-3
+creds:
+  username: flomesh
+  password: pipy
+plugins:
+  - tag
+  - tracing
+  - logger
+  # - metrics
+  # - identify
+  # - credential
+  - throttle
+  - balancer
