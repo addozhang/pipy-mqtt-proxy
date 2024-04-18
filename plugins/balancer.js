@@ -5,17 +5,20 @@ var balancer = new algo.LoadBalancer(config.brokers, { algorithm: 'round-robin' 
 var $ctx
 var $conn
 export default pipeline($ => $
-  .onStart(ctx => void ($ctx = ctx))
-  .onEnd(() => $conn.free())
-  .handleStreamStart(
-    function () {
-      $conn = balancer.allocate()
-    }
-  )
-  .handleMessageStart(function() {
+  .onStart(function (ctx) {
+    $ctx = ctx
+    $conn = balancer.allocate()
     $ctx.target = $conn.target
   })
-  .encodeMQTT()
-  .connect(() => $conn.target)
-  .decodeMQTT()
+  .onEnd(() => {
+    $conn?.free()
+  })
+  .mux(() => $ctx).to($ => $
+    .fork().to($ => $
+      .encodeMQTT()
+      .connect(() => $conn.target)
+      .decodeMQTT()
+      .swap(() => $ctx.down)
+    )
+  )
 )
