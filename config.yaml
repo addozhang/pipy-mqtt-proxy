@@ -5,7 +5,7 @@ listenTLS:
   cert: ./secret/server-cert.pem
   key: ./secret/server-key.pem
 brokers:
-  - 198.19.249.3:1883
+  - localhost:1883
 limits:
   conn:
     rate: 200
