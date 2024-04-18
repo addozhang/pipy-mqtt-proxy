@@ -13,12 +13,8 @@ export default pipeline($ => $
   .onEnd(() => {
     $conn?.free()
   })
-  .mux(() => $ctx).to($ => $
-    .fork().to($ => $
-      .encodeMQTT()
-      .connect(() => $conn.target)
-      .decodeMQTT()
-      .swap(() => $ctx.down)
-    )
-  )
+  .encodeMQTT()
+  .connect(() => $conn.target)
+  .decodeMQTT()
+  .swap(() => $ctx.down)
 )

@@ -20,7 +20,7 @@ var respPlugins = plugins.filter(p => p.response).map(
   }
 ).reverse()
 if (respPlugins.length == 0) {
-  respPlugins.push(pipeline($=>$.pipeNext()))
+  respPlugins.push(pipeline($ => $.pipeNext()))
 }
 
 main = pipeline($ => $
@@ -57,9 +57,8 @@ main = pipeline($ => $
     }
   )
   .fork().to($ => $
-    .demux().to($ => $
-      .pipe(reqPlugins, () => $ctx)
-    )
+    .onStart(() => Promise.resolve())
+    .pipe(reqPlugins, () => $ctx)
   )
   .replace((_, i) => i === 0 ? new Data : undefined)
   .swap(() => $ctx.down)
