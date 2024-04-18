@@ -28,10 +28,10 @@ creds:
   username: flomesh
   password: pipy
 plugins:
-  - tag
-  - tracing
+  # - tag
+  # - tracing
   - logger
-  # - metrics
+  - metrics
   # - identify
   # - credential
   - throttle
