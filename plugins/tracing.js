@@ -1,4 +1,4 @@
-import config from '/config.js'
+import {config} from '/config.js'
 
 var key = config?.tracing?.key ? config.tracing.key : 'traceid'
 

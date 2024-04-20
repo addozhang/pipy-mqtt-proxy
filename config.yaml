@@ -5,10 +5,18 @@ listenTLS:
   cert: ./secret/server-cert.pem
   key: ./secret/server-key.pem
 brokers:
-  - localhost:1883
+  - addr: localhost:1883
+    capicity: 10
+  - addr: 127.0.0.1:1883
+    capicity: 10
+healthCheck:
+  interval: 2 #seconds
+  failureThreshold: 3
+  successThreshold: 3
+  backoffRate: 2
 limits:
   conn:
-    rate: 200
+    rate: 20
     blockInput: true
     fastFail: true
   pub:

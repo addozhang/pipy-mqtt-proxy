@@ -1,7 +1,10 @@
-import config from './config.js'
+import { config } from './config.js'
+import healthCheck from '/plugins/health-check.js'
 
 var $ctx
 var $inbound
+
+healthCheck
 
 var plugins
 var main

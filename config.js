@@ -1,5 +1,6 @@
-export default (
-  YAML.decode(
-    pipy.load('config.yaml')
-  )
+var config = YAML.decode(
+  pipy.load('config.yaml')
 )
+var unhealtyBrokers = new algo.Cache()
+
+export { config, unhealtyBrokers}

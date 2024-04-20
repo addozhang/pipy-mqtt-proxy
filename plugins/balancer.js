@@ -1,11 +1,13 @@
-import config from '/config.js'
+import {config, unhealtyBrokers} from '/config.js'
+// connecting latency
 var connectLatency = new stats.Histogram(
   'connect_latency',
   new Array(13).fill().map((_,i) => Math.pow(1.5, i+1)|0).concat([Infinity]),
   ['broker'],
 )
-
-var balancer = new algo.LoadBalancer(config.brokers, { algorithm: 'round-robin' })
+// load balancer
+var addrs = config.brokers.map(b => b.addr)
+var balancer = new algo.LoadBalancer(addrs, { algorithm: 'round-robin' })
 
 var $ctx
 var $conn
@@ -13,7 +15,7 @@ var $requestTime
 export default pipeline($ => $
   .onStart(function (ctx) {
     $ctx = ctx
-    $conn = balancer.allocate()
+    $conn = balancer.allocate(undefined, unhealtyBrokers)
     $ctx.target = $conn.target
   })
   .onEnd(() => {

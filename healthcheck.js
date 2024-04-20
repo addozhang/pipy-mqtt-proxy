@@ -1,0 +1,96 @@
+import {config, unhealtyBrokers} from '/config.js'
+
+var interval = Number.parseInt(config.healthCheck.interval)
+var failureThreshold = Number.parseInt(config.healthCheck.failureThreshold)
+var successThreshold = Number.parseInt(config.healthCheck.successThreshold)
+var backoffRate = Number.parseInt(config.healthCheck.backoffRate)
+var brokers = config.brokers.map(b => ({
+  addr: b.addr,
+  failureCount: 0,
+  successCount: 0,
+  healthy: true,
+  retries: 0,
+  retryTick: 1
+}))
+
+var doSuccess = (target) => {
+  var key = target.addr
+  if (!target.healthy) { // unhealthy
+    if (++target.successCount >= successThreshold) { // unhealthy -> healthy
+      target.healthy = true
+      target.failureCount = 0
+      target.retries = 0
+      target.retryTick = 0
+      target.successCount = 0
+      if(unhealtyBrokers.get(key)) {
+        unhealtyBrokers.remove(key)
+      }
+    }
+  }
+}
+
+var doFailure = (target) => {
+  var key = target.addr
+  if (target.healthy) {
+    if (++target.failureCount >= failureThreshold) { // healthy -> unhealty
+      target.healthy = false
+      unhealtyBrokers.set(key, true)
+    }
+  } else { // unhealthy
+    target.retries++
+    target.retryTick = Math.pow(backoffRate, target.retries)
+  }
+}
+
+var checkPromises = []
+var $target
+var $resolve
+if (pipy.thread.id === 0) { // run in single thread
+  pipeline($ => $
+    .onStart(new Data)
+    .repeat(() => new Timeout(interval).wait().then(true)).to($ => $
+      .handleStreamStart(function () {
+        println('hi')
+      })
+      .replaceData(function () {
+        var messages = []
+        brokers.forEach(broker => {
+          if (broker.healthy || --broker.retryTick <= 0) { // check the healthy one and unhealthy one which should retry ONLY
+            var resolve
+            checkPromises.push(new Promise(r => resolve = r))
+            messages.push(new Message({ broker, resolve: resolve }))
+          }
+        })
+        return messages
+      })
+      .demux().to($ => $
+        .handleMessageStart(function (msg) {
+          $target = msg.head.broker
+          $resolve = msg.head.resolve
+        })
+        .connect(() => $target.addr,
+          {
+            connectTimeout: 0.1,
+            readTimeout: 0.1,
+            idleTimeout: 0.1,
+          }
+        )
+        .handleStreamEnd(e => {
+          if (!e.error || e.error === "ReadTimeout" || e.error === "IdleTimeout") {
+            console.log(`healthy -> ${$target.addr} ...`)
+            doSuccess($target)
+          } else {
+            console.log(`unhealthy -> ${$target.addr} ...`)
+            doFailure($target)
+          }
+          $resolve()
+        })
+      )
+      .replaceStreamEnd(new StreamEnd)
+      .wait(() => {
+        return Promise.all(checkPromises)
+      })
+    )
+  ).spawn()
+}
+
