@@ -1,10 +1,4 @@
 import { config } from './config.js'
-import healthCheck from '/plugins/health-check.js'
-
-var $ctx
-var $inbound
-
-healthCheck
 
 var plugins
 var main
@@ -26,6 +20,8 @@ if (respPlugins.length == 0) {
   respPlugins.push(pipeline($ => $.pipeNext()))
 }
 
+var $ctx
+var $inbound
 main = pipeline($ => $
   .onStart(
     function () {
