@@ -1,4 +1,4 @@
-import {config, unhealtyBrokers} from '/config.js'
+import { config, unhealtyBrokers } from '/config.js'
 
 var interval = Number.parseInt(config.healthCheck.interval)
 var failureThreshold = Number.parseInt(config.healthCheck.failureThreshold)
@@ -22,7 +22,7 @@ var doSuccess = (target) => {
       target.retries = 0
       target.retryTick = 0
       target.successCount = 0
-      if(unhealtyBrokers.get(key)) {
+      if (unhealtyBrokers.get(key)) {
         unhealtyBrokers.remove(key)
       }
     }
@@ -42,7 +42,7 @@ var doFailure = (target) => {
   }
 }
 
-var checkPromises = []
+var checkPromises
 var $target
 var $resolve
 if (pipy.thread.id === 0) { // run in single thread
@@ -50,10 +50,11 @@ if (pipy.thread.id === 0) { // run in single thread
     .onStart(new Data)
     .repeat(() => new Timeout(interval).wait().then(true)).to($ => $
       .handleStreamStart(function () {
-        println('hi')
+        println('Health checking starting ...')
       })
       .replaceData(function () {
         var messages = []
+        checkPromises = []
         brokers.forEach(broker => {
           if (broker.healthy || --broker.retryTick <= 0) { // check the healthy one and unhealthy one which should retry ONLY
             var resolve
@@ -61,6 +62,7 @@ if (pipy.thread.id === 0) { // run in single thread
             messages.push(new Message({ broker, resolve: resolve }))
           }
         })
+        messages.push(new StreamEnd) // for next repeat
         return messages
       })
       .demux().to($ => $
@@ -75,7 +77,10 @@ if (pipy.thread.id === 0) { // run in single thread
             idleTimeout: 0.1,
           }
         )
-        .handleStreamEnd(e => {
+        .replaceData(
+          () => new Data
+        )
+        .replaceStreamEnd(e => {
           if (!e.error || e.error === "ReadTimeout" || e.error === "IdleTimeout") {
             console.log(`healthy -> ${$target.addr} ...`)
             doSuccess($target)
@@ -84,11 +89,11 @@ if (pipy.thread.id === 0) { // run in single thread
             doFailure($target)
           }
           $resolve()
+          return new Message
         })
       )
-      .replaceStreamEnd(new StreamEnd)
       .wait(() => {
-        return Promise.all(checkPromises)
+        return Promise.all(checkPromises)/*.then(() => console.log('all checked ...'))*/
       })
     )
   ).spawn()
