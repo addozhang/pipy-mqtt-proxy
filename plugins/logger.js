@@ -1,5 +1,4 @@
-// configure logger to stdout
-var logger = new logging.JSONLogger('console').toStdout()
+import logger from '/config.js'
 
 var $ctx
 var $reqHead

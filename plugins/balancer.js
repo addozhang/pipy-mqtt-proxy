@@ -1,4 +1,4 @@
-import {config, unhealtyBrokers} from '/config.js'
+import {config, unhealthyBrokers} from '/config.js'
 // connecting latency
 var connectLatency = new stats.Histogram(
   'connect_latency',
@@ -15,7 +15,7 @@ var $requestTime
 export default pipeline($ => $
   .onStart(function (ctx) {
     $ctx = ctx
-    $conn = balancer.allocate(undefined, unhealtyBrokers)
+    $conn = balancer.allocate(undefined, unhealthyBrokers)
     $ctx.target = $conn.target
   })
   .onEnd(() => {

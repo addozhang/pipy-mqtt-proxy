@@ -1,15 +1,10 @@
-import { config } from '/config.js'
+import { config, connQuota } from '/config.js'
 
 var connQuotaBlock = new algo.Quota(
   Number.parseInt(config.limits.conn.rate / __thread.concurrency),
   { per: 1 }
 )
-var brokerCapacities = config.brokers.reduce(function (caps, i) { //TODO dynamically!!!
-  caps = caps + Number.parseInt(i.capicity)
-  return caps
-}, 0)
-var connRate = Number.parseInt(config.limits.conn.rate)
-var connQuota = new algo.Quota((connRate < brokerCapacities ? connRate : brokerCapacities) / __thread.concurrency)
+
 var $ctx
 export default pipeline($ => $
   .onStart(
