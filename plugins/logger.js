@@ -31,7 +31,6 @@ export var request = pipeline($ => $
         reqSize: $reqSize,
         reqTime: $reqTime,
         endTime: Date.now(),
-        broker: $ctx.target,
         clientID: $ctx.connMsg?.payload?.clientID,
       })
     }
