@@ -92,7 +92,7 @@ var healtchCheck = pipeline($ => $
       })
     )
     .wait(() => {
-      return Promise.all(checkPromises)/*.then(() => console.log('all checked ...'))*/
+      return Promise.all(checkPromises)
     })
   )
 )

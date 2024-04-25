@@ -1,4 +1,3 @@
-tcp: false
 listen: 1884
 listenTLS: 
   port: 11884
@@ -6,21 +5,22 @@ listenTLS:
   key: ./secret/server-key.pem
 brokers:
   - addr: 127.0.0.1:1883
-    capicity: 10
+    capicity: 1000
   - addr: localhost:1883
-    capicity: 10
+    capicity: 1000
 healthCheck:
+  enabled: true
   interval: 2 #seconds
   failureThreshold: 3
   successThreshold: 3
   backoffRate: 2
 limits:
   conn:
-    rate: 20
+    rate: 2000
     blockInput: true
     fastFail: true
   pub:
-    rate: 10
+    rate: 1000
     blockInput: true
 tracing:
   key: traceid
