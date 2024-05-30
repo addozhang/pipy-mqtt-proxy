@@ -2,7 +2,7 @@ import { config, connQuota } from '/config.js'
 
 var connQuotaBlock = new algo.Quota(
   Number.parseInt(config.limits.conn.rate / __thread.concurrency),
-  { per: 1 }
+  { key: 'conn-block', per: 1 }
 )
 
 var $ctx
@@ -45,7 +45,7 @@ var connThrottle = pipeline($ => $
 
 var pubThrottle = pipeline($ => $
   .throttleMessageRate(
-    new algo.Quota(Number.parseInt(config.limits.pub.rate / __thread.concurrency), { per: 1 }),
+    new algo.Quota(Number.parseInt(config.limits.pub.rate / __thread.concurrency), { key: 'pub', per: 1}),
     { blockInput: config.limits.conn.blockInput })
   .pipe(() => bypass)
 )
