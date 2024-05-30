@@ -11,7 +11,7 @@ var brokerCapacities = config.brokers.reduce(function (caps, i) {
   return caps
 }, 0)
 var connRate = Number.parseInt(config.limits.conn.rate)
-var connQuota = new algo.Quota((connRate < brokerCapacities ? connRate : brokerCapacities) / __thread.concurrency, {key: 'conn'})
+var connQuota = new algo.Quota(connRate < brokerCapacities ? connRate : brokerCapacities, {key: 'conn'})
 
 // valid a broker
 //   1. add to unhealthy cache
@@ -25,13 +25,12 @@ var validBroker = (target) => {
   brokerCapacities += target.capicity
   if (connRate > pre) {
     if (connRate < brokerCapacities) {
-      connQuota.produce((connRate - pre) / __thread.concurrency)
+      connQuota.produce((connRate - pre))
     } else {
-      connQuota.produce(target.capicity / __thread.concurrency)
+      connQuota.produce(target.capicity)
     }
   }
-  logger.log(`Broker ${target.addr} valid, change connection quota from ${previous * __thread.concurrency} to $
-  {connQuota.current * __thread.concurrency} `)
+  logger.log(`Broker ${target.addr} valid, change connection quota from ${previous} to ${connQuota.current} `)
 }
 
 // invalid a broker:
@@ -43,11 +42,11 @@ var invalidBroker = (target) => {
   var pre = brokerCapacities
   brokerCapacities -= target.capicity
   if (connRate < pre && connRate > brokerCapacities) {
-    connQuota.consume((connRate - brokerCapacities) / __thread.concurrency)
+    connQuota.consume((connRate - brokerCapacities))
   } else if (connRate >= pre) {
-    connQuota.consume(target.capicity / __thread.concurrency)
+    connQuota.consume(target.capicity)
   }
-  logger.log(`Broker ${target.addr} invalid, change connection quota from ${previous * __thread.concurrency} to ${connQuota.current * __thread.concurrency} `)
+  logger.log(`Broker ${target.addr} invalid, change connection quota from ${previous} to ${connQuota.current} `)
 }
 
 export { config, logger, unhealthyBrokers, connQuota, validBroker, invalidBroker }

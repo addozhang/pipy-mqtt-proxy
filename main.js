@@ -2,8 +2,9 @@ import { config } from './config.js'
 
 import healthCheck from './healthcheck.js'
 
-//run health checking
-healthCheck.spawn()
+if (pipy.thread.id === 0 && config.healthCheck.enabled === 'true') { // run in single thread
+  healthCheck.spawn()
+}
 
 var plugins
 var main
