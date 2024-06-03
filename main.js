@@ -2,7 +2,8 @@ import { config } from './config.js'
 
 import healthCheck from './healthcheck.js'
 
-if (pipy.thread.id === 0 && config.healthCheck.enabled === 'true') { // run in single thread
+//start health check
+if (healthCheck !== undefined) {
   healthCheck.spawn()
 }
 

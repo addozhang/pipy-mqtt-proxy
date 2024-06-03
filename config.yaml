@@ -10,6 +10,7 @@ brokers:
     capicity: 1000
 healthCheck:
   enabled: true
+  port: 8888
   interval: 2 #seconds
   failureThreshold: 3
   successThreshold: 3
@@ -38,7 +39,7 @@ creds:
 plugins:
   # - tag
   # - tracing
-  - logger
+  # - logger
   - metrics
   # - identify
   # - credential
