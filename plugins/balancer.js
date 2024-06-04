@@ -1,8 +1,8 @@
-import {config, unhealthyBrokers} from '/config.js'
+import { config, unhealthyBrokers } from '/config.js'
 // connecting latency
 var connectLatency = new stats.Histogram(
   'connect_latency',
-  new Array(13).fill().map((_,i) => Math.pow(1.5, i+1)|0).concat([Infinity]),
+  new Array(13).fill().map((_, i) => Math.pow(1.5, i + 1) | 0).concat([Infinity]),
   ['broker'],
 )
 // load balancer
@@ -15,14 +15,16 @@ var $requestTime
 export default pipeline($ => $
   .onStart(function (ctx) {
     $ctx = ctx
-    $conn = balancer.allocate(undefined, unhealthyBrokers)
+    $conn = balancer.allocate(undefined, () => unhealthyBrokers)
     $ctx.target = $conn.target
   })
   .onEnd(() => {
-    $conn?.free()
+    if ($conn !== undefined) {
+      $conn.free()
+    }
   })
   .handleMessageStart(
-    function(msg) {
+    function (msg) {
       if (msg?.head?.type === 'CONNECT') {
         $requestTime = Date.now()
       }
@@ -32,7 +34,7 @@ export default pipeline($ => $
   .connect(() => $conn.target)
   .decodeMQTT()
   .handleMessageStart(
-    function(msg) {
+    function (msg) {
       if (msg?.head?.type === 'CONNACK') {
         connectLatency.withLabels($conn.target).observe(Date.now() - $requestTime)
       }
