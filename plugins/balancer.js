@@ -15,7 +15,7 @@ var $requestTime
 export default pipeline($ => $
   .onStart(function (ctx) {
     $ctx = ctx
-    $conn = balancer.allocate(undefined, () => unhealthyBrokers)
+    $conn = balancer.allocate(undefined, t => { return !unhealthyBrokers.has(t) })
     $ctx.target = $conn.target
   })
   .onEnd(() => {
