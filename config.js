@@ -20,12 +20,13 @@ var connQuota = new algo.Quota(connRate < brokerCapacities ? connRate : brokerCa
 var validBroker = (target) => {
   var previous = connQuota.current
   var pre = brokerCapacities
-  brokerCapacities += Number.parseInt(target.capicity)
+  var targetCap = Number.parseInt(target.capicity)
+  brokerCapacities += targetCap
   if (connRate > pre) {
     if (connRate < brokerCapacities) {
       connQuota.produce((connRate - pre))
     } else {
-      connQuota.produce(target.capicity)
+      connQuota.produce(targetCap)
     }
   }
   logger.log(`Broker ${target.addr} valid, change connection quota from ${previous} to ${connQuota.current} `)
@@ -37,11 +38,12 @@ var validBroker = (target) => {
 var invalidBroker = (target) => {
   var previous = connQuota.current
   var pre = brokerCapacities
-  brokerCapacities -= Number.parseInt(target.capicity)
+  var targetCap = Number.parseInt(target.capicity)
+  brokerCapacities -= targetCap
   if (connRate < pre && connRate > brokerCapacities) {
     connQuota.consume((connRate - brokerCapacities))
   } else if (connRate >= pre) {
-    connQuota.consume(Number.parseInt(target.capicity))
+    connQuota.consume(targetCap)
   }
   logger.log(`Broker ${target.addr} invalid, change connection quota from ${previous} to ${connQuota.current} `)
 }
