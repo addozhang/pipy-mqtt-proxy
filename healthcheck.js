@@ -44,7 +44,6 @@ if (pipy.thread.id === 0 && config.healthCheck.enabled === 'true') { // run in s
     }
   }
 
-  var checkPromises
   var $target
   var $resolve
 
@@ -56,12 +55,9 @@ if (pipy.thread.id === 0 && config.healthCheck.enabled === 'true') { // run in s
       })
       .replaceData(function () {
         var messages = []
-        checkPromises = []
         brokers.forEach(broker => {
           if (broker.healthy || --broker.retryTick <= 0) { // check the healthy one and unhealthy one which should retry ONLY
-            var resolve
-            checkPromises.push(new Promise(r => resolve = r))
-            messages.push(new Message({ broker, resolve: resolve }))
+            messages.push(new Message({ broker }))
           }
         })
         messages.push(new StreamEnd) // for next repeat
@@ -70,7 +66,6 @@ if (pipy.thread.id === 0 && config.healthCheck.enabled === 'true') { // run in s
       .demux().to($ => $
         .handleMessageStart(function (msg) {
           $target = msg.head.broker
-          $resolve = msg.head.resolve
         })
         .connect(() => $target.addr,
           {
@@ -90,13 +85,9 @@ if (pipy.thread.id === 0 && config.healthCheck.enabled === 'true') { // run in s
             console.log(`unhealthy -> ${$target.addr} ...`)
             doFailure($target)
           }
-          $resolve()
           return new Message
         })
       )
-      .wait(() => {
-        return Promise.all(checkPromises)
-      })
     )
   )
 
