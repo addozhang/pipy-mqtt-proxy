@@ -51,7 +51,7 @@ if (pipy.thread.id === 0 && config.healthCheck.enabled === 'true') { // run in s
     .onStart(new Data)
     .repeat(() => new Timeout(interval).wait().then(true)).to($ => $
       .handleStreamStart(function () {
-        println('Health checking starting ...')
+        console.log('Health checking starting ...')
       })
       .replaceData(function () {
         var messages = []
