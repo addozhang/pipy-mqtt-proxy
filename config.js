@@ -41,7 +41,7 @@ var invalidBroker = (target) => {
   if (connRate < pre && connRate > brokerCapacities) {
     connQuota.consume((connRate - brokerCapacities))
   } else if (connRate >= pre) {
-    connQuota.consume(target.capicity)
+    connQuota.consume(Number.parseInt(target.capicity))
   }
   logger.log(`Broker ${target.addr} invalid, change connection quota from ${previous} to ${connQuota.current} `)
 }
