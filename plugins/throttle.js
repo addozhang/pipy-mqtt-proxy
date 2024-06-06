@@ -27,6 +27,7 @@ export default pipeline($ => $
                 $ctx.connQuota = connQuota
                 return bypass
               }
+              $ctx.connQuota = connQuotaBlock
               return connThrottle
             case 'PUBLISH':
               return pubThrottle
